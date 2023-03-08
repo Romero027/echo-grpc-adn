@@ -8,7 +8,7 @@ import (
 	grpc "github.com/Romero027/grpc-go"
 	"golang.org/x/net/context"
 
-	filters "github.com/Romero027/echo-grpc-adn/filters"
+	"github.com/Romero027/echo-grpc-adn/filters/fault"
 	echo "github.com/Romero027/echo-grpc-adn/pb"
 )
 
@@ -16,7 +16,12 @@ func handler(writer http.ResponseWriter, request *http.Request) {
 	fmt.Printf("%s\n", request.URL.String())
 
 	var conn *grpc.ClientConn
-	conn, err := grpc.Dial(":9000", grpc.WithInsecure(), grpc.WithADNProcessor(grpc.ChainADNClientProcessors(filters.Hello)))
+	opts := []fault.CallOption{
+		// fault.WithDelay(time.Second * 5),
+		// fault.WithAbortProbability(1.0),
+	}
+	conn, err := grpc.Dial(":9000", grpc.WithInsecure(), grpc.WithADNProcessor(grpc.ChainADNClientProcessors(fault.FaultInjectionDelay(opts...))))
+	// conn, err := grpc.Dial(":9000", grpc.WithInsecure(), grpc.WithADNProcessor(grpc.ChainADNClientProcessors(logging.UnaryClientInterceptor(logging.InitializeLogger()))))
 	if err != nil {
 		log.Fatalf("could not connect: %s", err)
 	}
@@ -42,7 +47,7 @@ func main() {
 
 	http.HandleFunc("/", handler)
 
-	fmt.Printf("Starting server at port 8080\n")
+	fmt.Printf("Starting frontend at port 8080\n")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}

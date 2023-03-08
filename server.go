@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	filters "github.com/Romero027/echo-grpc-adn/filters"
+	acl "github.com/Romero027/echo-grpc-adn/filters/ACL"
 	echo "github.com/Romero027/echo-grpc-adn/pb"
 	grpc "github.com/Romero027/grpc-go"
 )
@@ -27,7 +27,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	// s := grpc.NewServer(grpc.UnaryInterceptor(grpc.ChainUnaryServer(UnaryServerInterceptor, UnaryServerInterceptor2)))
-	s := grpc.NewServer(grpc.UnaryInterceptor(grpc.ChainUnaryServer(filters.ContentBasedACL)))
+	s := grpc.NewServer(grpc.UnaryInterceptor(grpc.ChainUnaryServer(acl.ContentBasedACL("/test"))))
 	fmt.Printf("Starting server at port 9000\n")
 
 	echo.RegisterEchoServiceServer(s, &server{})
